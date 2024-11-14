@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: db
+    restart: on-failure
+    environment:
+      - MARIADB_USER=spring_examples_user
+      - MARIADB_PASSWORD=secret
+      - MARIADB_DATABASE=spring_examples_password
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    ports:
+      - '3306:3306'
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://db:3306/spring_examples_db
+      - SPRING_DATASOURCE_USERNAME=spring_examples_user
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_PROFILES_ACTIVE=dev
