@@ -16,7 +16,7 @@ import java.util.Optional;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    private final static ProductDtoMapper mapper = new ProductDtoMapper();
+    private final ProductDtoMapper mapper;
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -24,22 +24,23 @@ public class ProductServiceImpl implements ProductService {
     public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.mapper = new ProductDtoMapper();
     }
 
     @Override
     public ProductDto createProduct(ProductDto request) {
-        String skuNumber = request.skuNumber();
+        String skuNumber = request.getSkuNumber();
         if (this.productRepository.findBySkuNumber(skuNumber).isPresent()){
             throw new ProductAlreadyExistsException();
         }
         Product product = new Product.ProductBuilder()
                 .withSkuNumber(skuNumber)
-                .withName(request.name())
-                .withDescription(request.description())
-                .withPrice(request.price())
+                .withName(request.getName())
+                .withDescription(request.getDescription())
+                .withPrice(request.getPrice())
                 .build();
-        if (request.categoryId() != null) {
-            Category category = this.categoryRepository.getReferenceById(request.categoryId());
+        if (request.getCategoryId() != null) {
+            Category category = this.categoryRepository.getReferenceById(request.getCategoryId());
             product.setCategory(category);
         }
 
@@ -49,16 +50,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto updateProduct(ProductDto request) {
-        Product product = this.productRepository.findById(request.id()).orElseThrow(ProductNotFoundException::new);
+        Product product = this.productRepository.findById(request.getId()).orElseThrow(ProductNotFoundException::new);
 
-        if (request.categoryId() != null) {
-            Category category = this.categoryRepository.getReferenceById(request.categoryId());
+        if (request.getCategoryId() != null) {
+            Category category = this.categoryRepository.getReferenceById(request.getCategoryId());
             product.setCategory(category);
         }
-        product.setSkuNumber(request.skuNumber());
-        product.setName(request.name());
-        product.setDescription(request.description());
-        product.setPrice(request.price());
+        product.setSkuNumber(request.getSkuNumber());
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
 
         Product result = this.productRepository.save(product);
         return mapper.apply(result);

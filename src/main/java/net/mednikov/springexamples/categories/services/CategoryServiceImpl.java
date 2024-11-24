@@ -14,16 +14,17 @@ import java.util.Optional;
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
-    private final static CategoryDtoMapper mapper = new CategoryDtoMapper();
+    private final CategoryDtoMapper mapper;
     private final CategoryRepository categoryRepository;
 
     public CategoryServiceImpl(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
+        this.mapper =  new CategoryDtoMapper();
     }
 
     @Override
     public CategoryDto createCategory(CategoryDto categoryDto) {
-        String categoryName = categoryDto.name();
+        String categoryName = categoryDto.getName();
         if (this.categoryRepository.findByName(categoryName).isPresent()){
             throw new CategoryAlreadyExistsException();
         }
@@ -35,10 +36,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto updateCategory(CategoryDto categoryDto) {
         Category category = this.categoryRepository
-                .findById(categoryDto.id())
+                .findById(categoryDto.getId())
                 .orElseThrow(CategoryNotFoundException::new);
 
-        category.setName(categoryDto.name());
+        category.setName(categoryDto.getName());
 
         Category result = this.categoryRepository.save(category);
         return mapper.apply(result);
